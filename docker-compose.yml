@@ -1,0 +1,20 @@
+version: '3'
+services:
+  jellyfin-telegram-notifier:
+    build: .
+    image: fahmula/jellyfin-telegram-notifier
+    volumes:
+      - .:/app
+    ports:
+      - "5000:5000"  # Map host port 5000 to container port 5000
+    environment:
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID}
+      - JELLYFIN_BASE_URL=${JELLYFIN_BASE_URL}
+      - JELLYFIN_API_KEY=${JELLYFIN_API_KEY}
+      - YOUTUBE_API_KEY=${YOUTUBE_API_KEY}
+      - SEASON_ADDED_WITHIN_X_DAYS=${SEASON_ADDED_WITHIN_X_DAYS}
+      - EPISODE_PREMIERED_WITHIN_X_DAYS=${EPISODE_PREMIERED_WITHIN_X_DAYS}
+    command: python main.py
+    env_file:
+      - .env

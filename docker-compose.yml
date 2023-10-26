@@ -1,10 +1,8 @@
 version: '3'
 services:
   jellyfin-telegram-notifier:
-    build: .
+    container_name: jellyfin-telegram-notifier
     image: fahmula/jellyfin-telegram-notifier
-    volumes:
-      - .:/app
     ports:
       - "5000:5000"  # Map host port 5000 to container port 5000
     environment:
@@ -15,6 +13,5 @@ services:
       - YOUTUBE_API_KEY=${YOUTUBE_API_KEY}
       - SEASON_ADDED_WITHIN_X_DAYS=${SEASON_ADDED_WITHIN_X_DAYS}
       - EPISODE_PREMIERED_WITHIN_X_DAYS=${EPISODE_PREMIERED_WITHIN_X_DAYS}
-    command: python main.py
     env_file:
       - .env

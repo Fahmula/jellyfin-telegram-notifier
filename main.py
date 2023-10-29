@@ -28,8 +28,6 @@ rotating_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %
 # Add the rotating handler to the logger
 logging.getLogger().addHandler(rotating_handler)
 
-# Store notified items in a dictionary
-notified_items = {}
 
 # Constants
 TELEGRAM_BOT_TOKEN = os.environ["TELEGRAM_BOT_TOKEN"]
@@ -39,6 +37,26 @@ JELLYFIN_API_KEY = os.environ["JELLYFIN_API_KEY"]
 YOUTUBE_API_KEY = os.environ["YOUTUBE_API_KEY"]
 EPISODE_PREMIERED_WITHIN_X_DAYS = int(os.environ["EPISODE_PREMIERED_WITHIN_X_DAYS"])
 SEASON_ADDED_WITHIN_X_DAYS = int(os.environ["SEASON_ADDED_WITHIN_X_DAYS"])
+
+# Path for the JSON file to store notified items
+notified_items_file = '/app/data/notified_items.json'
+
+
+# Function to load notified items from the JSON file
+def load_notified_items():
+    if os.path.exists(notified_items_file):
+        with open(notified_items_file, 'r') as file:
+            return json.load(file)
+    return {}
+
+
+# Function to save notified items to the JSON file
+def save_notified_items(notified_items_to_save):
+    with open(notified_items_file, 'w') as file:
+        json.dump(notified_items_to_save, file)
+
+
+notified_items = load_notified_items()
 
 
 def send_telegram_photo(photo_id, caption):
@@ -106,7 +124,7 @@ def item_already_notified(item_type, item_name, release_year):
     return key in notified_items
 
 
-def mark_item_as_notified(item_type, item_name, release_year, max_entries=100):
+def mark_item_as_notified(item_type, item_name, release_year, max_entries=3):
     key = f"{item_type}:{item_name}:{release_year}"
     notified_items[key] = True
 
@@ -119,6 +137,8 @@ def mark_item_as_notified(item_type, item_name, release_year, max_entries=100):
         oldest_key = keys_sorted_by_insertion_order[0]
         del notified_items[oldest_key]
         logging.info(f"Key '{oldest_key}' has been deleted from notified_items")
+    # Save the updated notified items to the JSON file
+    save_notified_items(notified_items)
 
 
 @app.route("/webhook", methods=["POST"])
@@ -183,6 +203,7 @@ def announce_new_releases_from_jellyfin():
                     return "Season notification was sent to telegram"
                 else:
                     send_telegram_photo(series_id, notification_message)
+                    mark_item_as_notified(item_type, item_name, release_year)
                     logging.warning(f"{series_name_cleaned} {season} image does not exists, falling back to series image")
                     logging.info(f"(Season) {series_name_cleaned} {season} notification was sent to telegram")
                     return "Season notification was sent to telegram"
@@ -201,8 +222,10 @@ def announce_new_releases_from_jellyfin():
 
                 if not is_not_within_last_x_days(season_date_created, SEASON_ADDED_WITHIN_X_DAYS):
                     logging.info(f"(Episode) {series_name} Season {season_num} "
-                                 f"was added within the last 3 days. Not sending notification.")
-                    return "Season was added within the last 3 days. Not sending notification."
+                                 f"was added within the last {SEASON_ADDED_WITHIN_X_DAYS} "
+                                 f"days. Not sending notification.")
+                    return (f"Season was added within the last {SEASON_ADDED_WITHIN_X_DAYS} "
+                            f"days. Not sending notification.")
 
                 if episode_premiere_date and is_within_last_x_days(episode_premiere_date,
                                                                    EPISODE_PREMIERED_WITHIN_X_DAYS):

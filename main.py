@@ -124,7 +124,7 @@ def item_already_notified(item_type, item_name, release_year):
     return key in notified_items
 
 
-def mark_item_as_notified(item_type, item_name, release_year, max_entries=3):
+def mark_item_as_notified(item_type, item_name, release_year, max_entries=100):
     key = f"{item_type}:{item_name}:{release_year}"
     notified_items[key] = True
 

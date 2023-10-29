@@ -7,6 +7,7 @@ services:
       - "5000:5000"  # Map host port 5000 to container port 5000
     volumes:
       - /app/log:/app/log  # Map the host directory to the container directory for logs
+      - /app/data:/app/data  # Map the host directory to the container directory for json data
     environment:
       - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
       - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID}

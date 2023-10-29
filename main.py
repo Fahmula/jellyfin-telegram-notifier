@@ -13,8 +13,12 @@ load_dotenv()
 app = Flask(__name__)
 
 # Set up logging
-log_filename = 'jellyfin_telegram-notifier.log'
+log_directory = '/app/log'
+log_filename = os.path.join(log_directory, 'jellyfin_telegram-notifier.log')
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+# Ensure the log directory exists
+os.makedirs(log_directory, exist_ok=True)
 
 # Create a handler for rotating log files daily
 rotating_handler = TimedRotatingFileHandler(log_filename, when="midnight", interval=1, backupCount=7)

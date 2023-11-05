@@ -1,23 +1,27 @@
-# Use the official Python image based on Alpine Linux
-FROM python:3.8-alpine
+FROM python:3.11-slim-bookworm
 
-# Set the working directory in the container
+LABEL maintainer="fahmula"
+
+RUN adduser pythonapp
+
 WORKDIR /app
 
-# Install curl and ping
-RUN apk update && \
-    apk add --no-cache curl iputils
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends curl iputils-ping && \
+    rm -rf /var/lib/apt/lists/*
 
-# Copy the requirements file into the container at /app
 COPY requirements.txt /app/
 
-# Install any needed packages specified in requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the current directory contents into the container at /app
 COPY . /app/
+
+RUN chown -R pythonapp:pythonapp /app
 
 ENV PYTHONUNBUFFERED=1
 
-# Define the command to run your Python script
-CMD ["python", "main.py"]
+USER pythonapp
+
+EXPOSE 5000
+
+CMD ["python3", "main.py"]
